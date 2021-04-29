@@ -2,8 +2,8 @@ package com.redhat.apps.client.rhdgspringboot.services;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.util.Properties;
+import java.io.FileInputStream;
 
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
@@ -15,13 +15,12 @@ import lombok.Data;
 @Data
 @Component
 public class CacheHelper {
-    
 
-    RemoteCacheManager rcm;
-    @Value("${hotrod.properties}")
-    String propertiesFile;
+	RemoteCacheManager rcm;
+	@Value("${hotrod.properties}")
+	String propertiesFile;
 
-    RemoteCacheManager getRemoteCacheManager() {
+	RemoteCacheManager getRemoteCacheManager() {
         if (rcm != null) {
             return rcm;
         }
@@ -39,6 +38,20 @@ public class CacheHelper {
 
         } catch (IOException ex) {
             ex.printStackTrace();
+            try {
+            	InputStream input = new FileInputStream(propertiesFile);
+
+                //load a properties file from class path, inside static method
+                p.load(input);
+                b.withProperties(p);
+                b.addContextInitializers(new com.redhat.apps.client.rhdgspringboot.LibraryInitializerImpl());
+            
+
+
+            } catch (IOException ex2) {
+            	 ex2.printStackTrace();
+            }
+            
         }
         rcm = new RemoteCacheManager(b.build());
         return rcm;
